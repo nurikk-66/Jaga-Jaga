@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JAGA-JAGA! — Malaysia's Daily Readiness Game</title>
+  <meta name="description" content="Level up your daily Malaysia readiness. Live MET Malaysia weather in 3D, boss alerts, petrol prices — gamified. Built for the Pasar API mini challenge." />
+  <meta property="og:title" content="JAGA-JAGA! 🇲🇾" />
+  <meta property="og:description" content="Cuaca. Amaran. Harga minyak. Semua dalam satu game." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛈️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+
+  <!-- ══════════ HERO: 3D SKY DIORAMA ══════════ -->
+  <header class="diorama" id="diorama">
+    <canvas id="sky-canvas" aria-hidden="true"></canvas>
+    <div class="diorama-fallback" id="diorama-fallback" aria-hidden="true"></div>
+
+    <div class="hud">
+      <div class="hud-top">
+        <h1 class="logo">JAGA<span class="logo-dash">–</span>JAGA<span class="logo-bang">!</span></h1>
+        <div class="xp-chip" id="xp-chip" title="Your rank & XP">
+          <span class="xp-rank" id="xp-rank">Budak Baru</span>
+          <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+          <span class="xp-num" id="xp-num">0 XP</span>
+        </div>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="loc-block">
+          <p class="eyebrow">HARI INI DEKAT</p>
+          <button class="loc-name" id="loc-btn" aria-haspopup="dialog">Kuala Lumpur ▾</button>
+          <p class="now-line" id="now-line">Loading cuaca…</p>
+        </div>
+        <div class="temp-block">
+          <span class="temp-big" id="temp-big">--°</span>
+          <span class="temp-small" id="temp-small">min --°</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════════ STREAK / CHECK-IN ══════════ -->
+    <section class="card checkin-card">
+      <div class="streak-flame" id="streak-flame">🔥</div>
+      <div class="checkin-copy">
+        <h2 class="card-title">Streak: <span id="streak-count">0</span> hari</h2>
+        <p class="muted">Check in tiap hari, jangan putus chain bro.</p>
+      </div>
+      <button class="btn btn-yellow" id="checkin-btn">Check in +20 XP</button>
+    </section>
+
+    <!-- ══════════ BOSS ALERTS ══════════ -->
+    <section class="alerts" id="alerts-section" aria-live="polite">
+      <h2 class="section-title"><span class="siren">🚨</span> BOSS ALERTS</h2>
+      <div id="alerts-list" class="alerts-list">
+        <div class="alert-card alert-loading">Scanning MET Malaysia warnings…</div>
+      </div>
+    </section>
+
+    <!-- ══════════ 7-DAY FORECAST ══════════ -->
+    <section>
+      <h2 class="section-title">☁️ 7 HARI RAMALAN</h2>
+      <div class="forecast-strip" id="forecast-strip" tabindex="0" aria-label="7 day forecast, scroll horizontally">
+        <div class="fc-card fc-loading">…</div>
+      </div>
+      <p class="src-line">Sumber: MET Malaysia via api.data.gov.my</p>
+    </section>
+
+    <!-- ══════════ TEKA CUACA GAME ══════════ -->
+    <section class="card game-card">
+      <h2 class="card-title">🎯 TEKA CUACA</h2>
+      <p class="muted" id="game-question">Esok kat lokasi kau — hujan ke tak? Teka betul dapat +50 XP.</p>
+      <div class="game-options" id="game-options">
+        <button class="btn btn-ghost" data-guess="clear">☀️ Cerah</button>
+        <button class="btn btn-ghost" data-guess="rain">🌧️ Hujan</button>
+        <button class="btn btn-ghost" data-guess="storm">⛈️ Ribut Petir</button>
+      </div>
+      <p class="game-status" id="game-status"></p>
+    </section>
+
+    <!-- ══════════ PETROL WATCH ══════════ -->
+    <section>
+      <h2 class="section-title">⛽ PETROL WATCH <span class="week-tag" id="fuel-week"></span></h2>
+      <div class="fuel-grid" id="fuel-grid">
+        <div class="fuel-card fuel-loading">Loading harga minyak…</div>
+      </div>
+      <p class="src-line">Sumber: Ministry of Finance via api.data.gov.my (weekly APM)</p>
+    </section>
+
+    <!-- ══════════ BADGES ══════════ -->
+    <section>
+      <h2 class="section-title">🏅 BADGES</h2>
+      <div class="badge-grid" id="badge-grid"></div>
+    </section>
+
+    <footer class="footer">
+      <p><strong>JAGA-JAGA!</strong> — built for the <a href="https://pasarapi.xyz" rel="noopener">Pasar API</a> mini challenge by Kracked Devs.</p>
+      <p class="muted">Open source (MIT) · Data © Kerajaan Malaysia (data.gov.my) · Vibe-coded with Claude</p>
+    </footer>
+  </main>
+
+  <!-- ══════════ LOCATION PICKER DIALOG ══════════ -->
+  <dialog id="loc-dialog" class="loc-dialog">
+    <form method="dialog" class="loc-form">
+      <h2 class="card-title">Pilih lokasi</h2>
+      <input type="search" id="loc-search" class="loc-input" placeholder="Taip nama bandar / daerah…" autocomplete="off" />
+      <div class="loc-chips" id="loc-chips"></div>
+      <div class="loc-actions">
+        <button type="button" id="loc-cancel" class="btn btn-ghost">Tutup</button>
+        <button value="go" id="loc-go" class="btn btn-yellow">Cari</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
